@@ -1,0 +1,10 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+BreakBeforeBraces: Attach
+AllowShortIfStatementsOnASingleLine: true
+SpaceAfterCStyleCast: false
+Standard: c++14
+ReflowComments: true
+ColumnLimit: 120
