@@ -94,4 +94,25 @@ int main()
         assert(v_9[3] == 4);
         assert(v_8.size() == 0);
     }
+
+    // Iterator invalidation test
+    {
+        Vector<int> v_9 = {1, 2, 3};
+        auto it = v_9.begin();
+        v_9.push_back(4);
+        assert(it != v_9.begin());
+    }
+
+    // test out of bounds
+    {
+        Vector<int> v_10 = {1, 2, 3};
+
+        try {
+            v_10[4];
+        } catch (const std::out_of_range &e) {
+            assert(true);
+        } catch (...) {
+            assert(false && "Out of bound test failed");
+        }
+    }
 }
