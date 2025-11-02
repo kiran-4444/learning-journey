@@ -2,9 +2,21 @@ BasedOnStyle: LLVM
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
-BreakBeforeBraces: Attach
+Standard: c++14
+ColumnLimit: 120
+ReflowComments: true
 AllowShortIfStatementsOnASingleLine: true
 SpaceAfterCStyleCast: false
-Standard: c++14
-ReflowComments: true
-ColumnLimit: 120
+
+AlwaysBreakTemplateDeclarations: Yes
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+
+# Break initializer list after colon
+BreakConstructorInitializers: AfterColon
+
+# Align initializer list with no leading commas
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+AllowAllConstructorInitializersOnNextLine: false
