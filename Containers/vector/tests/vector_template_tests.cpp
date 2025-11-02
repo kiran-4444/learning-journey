@@ -1,6 +1,7 @@
 #include "../Vector.h"
 
 #include <cassert>
+#include <iomanip>
 #include <sstream>
 #include <stdexcept>
 
@@ -27,9 +28,12 @@ int main()
     {
         try {
             Vector<double> v_3 = {4.0, 5.0, 6.0};
-            for (auto &i : v_3) {
-                std::cout << i << "\n";
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(1);
+            for (double &i : v_3) {
+                oss << i << "\n";
             }
+            assert(oss.str() == "4.0\n5.0\n6.0\n" && "Wrong formatting");
         } catch (...) {
             assert(false && "Iteration failed");
         }
@@ -51,11 +55,43 @@ int main()
             Vector<int> v_5 = {1, 2, 3};
             std::ostringstream oss;
             oss << v_5;
-            // std::cout << v_5;
-
             assert(oss.str() == "{ 1, 2, 3 }");
         } catch (...) {
             assert(false && "Error");
         }
+    }
+
+    // test push_back
+
+    {
+        try {
+            Vector<int> v_6 = {1, 2, 3};
+            v_6.push_back(4); // cap = 6 (3 * 2)
+            v_6.push_back(5); // cap = 6
+
+            assert(v_6.size() == 5 && "size comparision failed");
+            assert(v_6[3] == 4 && "Invalid offset access");
+            assert(v_6[4] == 5 && "Invalid offset access");
+            assert(v_6.capacity() == 6 && "Wrong capacity");
+        } catch (...) {
+            assert(false && "Error");
+        }
+    }
+
+    {
+        Vector<int> v_7;
+        for (int i = 0; i < 10000; i++) {
+            v_7.push_back(i);
+        }
+
+        assert(v_7.size() == 10000 && "Invalid size");
+    }
+
+    {
+        Vector<int> v_8 = {1, 2, 3};
+        v_8.push_back(4);
+        Vector<int> v_9 = std::move(v_8);
+        assert(v_9[3] == 4);
+        assert(v_8.size() == 0);
     }
 }

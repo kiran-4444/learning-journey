@@ -3,7 +3,7 @@ IndentWidth: 4
 TabWidth: 4
 UseTab: Never
 Standard: c++14
-ColumnLimit: 120
+ColumnLimit: 80
 ReflowComments: true
 AllowShortIfStatementsOnASingleLine: true
 SpaceAfterCStyleCast: false

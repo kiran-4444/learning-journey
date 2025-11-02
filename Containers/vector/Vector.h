@@ -10,9 +10,11 @@ class Vector {
   private:
     T *elem;
     int sz;
+    int cap;
 
   public:
     explicit Vector(int sz);
+    explicit Vector();
     Vector(std::initializer_list<T> lst);
     ~Vector() { delete[] elem; }
 
@@ -32,8 +34,20 @@ class Vector {
     const T *end() const { return elem + sz; }
 
     int size() const noexcept { return sz; }
+    int capacity() const noexcept { return cap; }
     void print();
+
+    void push_back(const T &);
+    void reserve(int new_cap);
 };
+
+template <typename T>
+Vector<T>::Vector()
+{
+    elem = new T[0]();
+    this->sz = 0;
+    this->cap = 0;
+}
 
 template <typename T>
 Vector<T>::Vector(int sz)
@@ -42,18 +56,25 @@ Vector<T>::Vector(int sz)
         throw std::length_error{"error"};
     }
 
-    elem = new T[sz];
+    elem = new T[sz]();
     this->sz = sz;
+    this->cap = sz;
 }
 
 template <typename T>
-Vector<T>::Vector(std::initializer_list<T> lst) : elem{new T[lst.size()]}, sz{static_cast<int>(lst.size())}
+Vector<T>::Vector(std::initializer_list<T> lst) :
+    elem{new T[lst.size()]},
+    sz{static_cast<int>(lst.size())},
+    cap{static_cast<int>(lst.size())}
 {
     std::copy(lst.begin(), lst.end(), elem);
 }
 
 template <typename T>
-Vector<T>::Vector(const Vector &other) : elem{new T[other.sz]}, sz{other.sz}
+Vector<T>::Vector(const Vector &other) :
+    elem{new T[other.sz]},
+    sz{other.sz},
+    cap{other.cap}
 {
     for (int i = 0; i < other.sz; i++) {
         elem[i] = other.elem[i];
@@ -72,16 +93,21 @@ Vector<T> &Vector<T>::operator=(const Vector &other)
         delete[] elem;
         elem = p;
         sz = other.sz;
+        cap = other.cap;
     }
 
     return *this;
 }
 
 template <typename T>
-Vector<T>::Vector(Vector &&other) noexcept : elem{other.elem}, sz{other.sz}
+Vector<T>::Vector(Vector &&other) noexcept :
+    elem{other.elem},
+    sz{other.sz},
+    cap{other.cap}
 {
     other.elem = nullptr;
     other.sz = 0;
+    other.cap = 0;
 }
 
 template <typename T>
@@ -92,9 +118,11 @@ Vector<T> &Vector<T>::operator=(Vector &&other) noexcept
 
         elem = other.elem;
         sz = other.sz;
+        cap = other.cap;
 
         other.elem = nullptr;
         other.sz = 0;
+        other.cap = 0;
     }
 
     return *this;
@@ -142,6 +170,34 @@ void Vector<T>::print()
     for (int i = 0; i < sz; i++) {
         std::cout << elem[i] << '\n';
     }
+}
+
+template <typename T>
+void Vector<T>::push_back(const T &value)
+{
+    if (sz == cap) {
+        reserve(cap == 0 ? 1 : cap * 2);
+    }
+
+    elem[sz] = value;
+    sz += 1;
+}
+
+template <typename T>
+void Vector<T>::reserve(int new_cap)
+{
+    if (new_cap <= cap) {
+        return;
+    }
+
+    T *p = new T[new_cap]();
+
+    for (int i = 0; i < sz; i++) {
+        p[i] = elem[i];
+    }
+    delete[] elem;
+    elem = p;
+    cap = new_cap;
 }
 
 template <typename Container, typename Value>
