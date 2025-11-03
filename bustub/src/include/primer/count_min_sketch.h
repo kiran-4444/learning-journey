@@ -78,12 +78,16 @@ class CountMinSketch {
    */
   auto TopK(uint16_t k, const std::vector<KeyType> &candidates) -> std::vector<std::pair<KeyType, uint32_t>>;
 
+  ~CountMinSketch();
+
  private:
   /** Dimensions of the count-min sketch matrix */
   uint32_t width_;  // Number of buckets for each hash function
   uint32_t depth_;  // Number of independent hash functions
   /** Pre-computed hash functions for each row */
   std::vector<std::function<size_t(const KeyType &)>> hash_functions_;
+
+  u_int32_t **matrix_;
 
   /** @fall2025 PLEASE DO NOT MODIFY THE FOLLOWING */
   constexpr static size_t SEED_BASE = 15445;
