@@ -115,4 +115,6 @@ int main()
             assert(false && "Out of bound test failed");
         }
     }
+
+    std::cout << "All tests passed" << std::endl;
 }
