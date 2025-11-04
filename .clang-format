@@ -10,9 +10,9 @@ SpaceAfterCStyleCast: false
 
 AlwaysBreakTemplateDeclarations: Yes
 
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterFunction: true
+# BreakBeforeBraces: Custom
+# BraceWrapping:
+#   AfterFunction: true
 
 # Break initializer list after colon
 BreakConstructorInitializers: AfterColon

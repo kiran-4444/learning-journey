@@ -5,8 +5,7 @@
 #include <sstream>
 #include <stdexcept>
 
-int main()
-{
+int main() {
     {
         try {
             // double initialization
