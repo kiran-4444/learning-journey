@@ -10,8 +10,7 @@
 template <size_t N>
 class Arena {
   private:
-    static constexpr size_t alignment = alignof(std::max_align_t);
-    alignas(alignment) std::array<std::byte, N> buffer;
+    std::array<std::byte, N> buffer;
     std::byte *next;
 
   public:
@@ -27,29 +26,19 @@ class Arena {
         return static_cast<size_t>(next - &buffer[0]);
     }
 
-    static constexpr size_t align_up(size_t n) noexcept {
-        return (n + alignment - 1) & ~(alignment - 1);
-    }
-
     std::byte *allocate(size_t n) {
+        std::cout << "Requested bytes: " << n << std::endl;
+        std::cout << "Used space: " << used() << std::endl;
+        size_t bytes_free = N - used();
+        std::cout << "Free bytes: " << bytes_free << std::endl;
 
-        const size_t aligned_n = align_up(n);
-        const size_t bytes_free = N - used();
-        std::cout << "use_bytes: " << used() << std::endl;
-
-        std::cout << "Allocating in arena " << n << " bytes" << std::endl;
-
-        std::cout << "n = " << n << std::endl
-                  << "aligned_n = " << aligned_n << std::endl
-                  << "bytes_free = " << bytes_free << std::endl;
-        if (bytes_free >= aligned_n) {
-            std::cout << "Found space in buffer" << std::endl;
-            std::byte *ret = next;
-            next += aligned_n;
-            std::cout << "Now used = " << used() << std::endl;
-            return ret;
+        if (bytes_free > n) {
+            std::byte *current = next;
+            next = next + n;
+            return current;
+        } else {
+            throw std::bad_alloc();
         }
-        throw std::bad_alloc();
     }
 
     void deallocate(std::byte *p, size_t n) noexcept {
@@ -114,9 +103,10 @@ int main() {
     std::vector<char, CustomAllocator<char, ARENA_SIZE>> vec{arena};
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < 100; i++) {
+
+    for (int i = 0; i < 100; i++)
         vec.push_back('a');
-    }
+
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end -
                                                                        start)
