@@ -15,6 +15,7 @@
 #include <cstddef>
 #include <limits>
 #include <new>
+#include <utility>
 
 template <typename T>
 class CustomAllocator {
