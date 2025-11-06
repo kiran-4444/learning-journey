@@ -10,7 +10,7 @@ SpaceAfterCStyleCast: false
 
 AlwaysBreakTemplateDeclarations: Yes
 
-# BreakBeforeBraces: Custom
+BreakBeforeBraces: Allman
 # BraceWrapping:
 #   AfterFunction: true
 
