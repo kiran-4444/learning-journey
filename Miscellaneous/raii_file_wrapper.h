@@ -1,0 +1,48 @@
+#include <cassert>
+#include <cstring>
+#include <fcntl.h>
+#include <iostream>
+#include <unistd.h>
+
+class File
+{
+  private:
+    int fd;
+
+  public:
+    File(const char *name, int flags, int mode = 0666)
+    {
+        fd = open(name, flags, mode);
+        if (fd == -1)
+        {
+            throw std::runtime_error("Failed to open file");
+        };
+    }
+    ~File()
+    {
+        if (fd != -1) close(fd);
+    }
+
+    File(const File &) = delete;
+    File &operator=(const File &) = delete;
+
+    File(File &&other) noexcept : fd(other.fd) { other.fd = -1; }
+    File &operator=(File &&other)
+    {
+
+        if (this != &other)
+        {
+            if (fd != -1) close(fd);
+            fd = other.fd;
+            other.fd = -1;
+        }
+
+        return *this;
+    }
+
+    int get_fd() { return fd; }
+
+    ssize_t fwrite(const char *data, size_t n) { return write(fd, data, n); }
+    ssize_t fread(char *buffer, size_t nbytes) { return read(fd, buffer, nbytes); }
+    ssize_t fseek(off_t offset, off_t whence) { return lseek(fd, offset, whence); }
+};
