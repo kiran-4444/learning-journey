@@ -1,5 +1,4 @@
 #include "pager.hpp"
-#include <algorithm>
 #include <cstring>
 #include <gtest/gtest.h>
 
