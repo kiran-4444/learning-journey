@@ -86,3 +86,15 @@ TEST_F(PagerTest, ThrowsOnOutOfBoundsRead)
     // Reading a page that doesn't exist should throw
     EXPECT_THROW(p.read_page(100, buf), std::runtime_error);
 }
+
+TEST_F(PagerTest, WriteToLargePageID)
+{
+    Pager p(test_filename.c_str());
+
+    char buffer[PAGE_SIZE] = {0};
+    std::strcpy(buffer, "large page id");
+
+    p.write_page(1000, buffer);
+
+    EXPECT_EQ(p.length(), 1001);
+}
