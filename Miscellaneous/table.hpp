@@ -1,10 +1,8 @@
 #include "pager.hpp"
 #include "row.hpp"
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
 #include <memory>
-#include <string>
 #include <sys/types.h>
 
 const uint32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
@@ -83,23 +81,23 @@ class Table
     }
 };
 
-int main()
-{
-    Table table("testing.bin");
+// int main()
+// {
+//     Table table("testing.bin");
 
-    uint32_t num_rows = table.get_row_count();
-    for (uint32_t i = num_rows; i < num_rows + 20; i++)
-    {
-        Row row = {i, "name", "email"};
-        table.insert_row(row);
-    }
+//     uint32_t num_rows = table.get_row_count();
+//     for (uint32_t i = num_rows; i < num_rows + 20; i++)
+//     {
+//         Row row = {i, "name", "email"};
+//         table.insert_row(row);
+//     }
 
-    num_rows = table.get_row_count();
-    for (uint32_t i = 0; i < num_rows; i++)
-    {
-        Row row = table.get_row(i);
-        std::cout << "{ " << "id: " << row.id << " }" << std::endl;
-    }
+//     num_rows = table.get_row_count();
+//     for (uint32_t i = 0; i < num_rows; i++)
+//     {
+//         Row row = table.get_row(i);
+//         std::cout << "{ " << "id: " << row.id << " }" << std::endl;
+//     }
 
-    return 0;
-}
+//     return 0;
+// }
