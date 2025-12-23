@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <mutex>
+#include <shared_mutex>
 #include <sys/types.h>
 
 const uint32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
@@ -11,6 +13,7 @@ class Table
 {
   private:
     std::unique_ptr<Pager> pager;
+    std::shared_mutex mut;
 
   public:
     Table(const char *table_name)
@@ -22,6 +25,7 @@ class Table
 
     void insert_row(const Row &row)
     {
+        std::lock_guard<std::shared_mutex> lock(mut);
         char row_buffer[ROW_SIZE] = {0};
         serialize(row_buffer, row);
 
@@ -39,6 +43,7 @@ class Table
 
     Row get_row(uint32_t row_index)
     {
+        std::shared_lock<std::shared_mutex> lock(mut);
         const uint32_t page_id = row_index / ROWS_PER_PAGE;
         const uint32_t row_offset = (row_index % ROWS_PER_PAGE) * ROW_SIZE;
 
@@ -80,24 +85,3 @@ class Table
         return rows + num_rows;
     }
 };
-
-// int main()
-// {
-//     Table table("testing.bin");
-
-//     uint32_t num_rows = table.get_row_count();
-//     for (uint32_t i = num_rows; i < num_rows + 20; i++)
-//     {
-//         Row row = {i, "name", "email"};
-//         table.insert_row(row);
-//     }
-
-//     num_rows = table.get_row_count();
-//     for (uint32_t i = 0; i < num_rows; i++)
-//     {
-//         Row row = table.get_row(i);
-//         std::cout << "{ " << "id: " << row.id << " }" << std::endl;
-//     }
-
-//     return 0;
-// }
