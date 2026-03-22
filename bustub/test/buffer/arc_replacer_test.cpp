@@ -20,7 +20,7 @@
 
 namespace bustub {
 
-TEST(ArcReplacerTest, DISABLED_SampleTest) {
+TEST(ArcReplacerTest, SampleTest) {
   // for the sake of simplicity
   // we use (a, fb) to notate page a on frame b,
   // (a, _) to mark ghost page with page id a
@@ -102,7 +102,7 @@ TEST(ArcReplacerTest, DISABLED_SampleTest) {
   ASSERT_EQ(2, arc_replacer.Evict());
 }
 
-TEST(ArcReplacerTest, DISABLED_SampleTest2) {
+TEST(ArcReplacerTest, SampleTest2) {
   // Test a smaller capacity
   ArcReplacer arc_replacer(3);
   // Fill up the replacer
@@ -215,5 +215,175 @@ TEST(ArcReplacerTest, DISABLED_SampleTest2) {
 }
 
 // Feel free to write more tests!
+
+TEST(ArcReplacerTest, MFUGhostTrimmingIsolation) {
+  ArcReplacer arc(3);
+
+  // Fill cache
+  arc.RecordAccess(1, 1);
+  arc.SetEvictable(1, true);
+  arc.RecordAccess(2, 2);
+  arc.SetEvictable(2, true);
+  arc.RecordAccess(3, 3);
+  arc.SetEvictable(3, true);
+
+  // Promote all to MFU (T2)
+  arc.RecordAccess(1, 1);
+  arc.RecordAccess(2, 2);
+  arc.RecordAccess(3, 3);
+
+  // Evict all → should go to MFU ghost (B2)
+  ASSERT_TRUE(arc.Evict().has_value());
+  ASSERT_TRUE(arc.Evict().has_value());
+  ASSERT_TRUE(arc.Evict().has_value());
+
+  // Insert new pages to overflow ghost
+  arc.RecordAccess(4, 4);
+  arc.SetEvictable(4, true);
+  arc.RecordAccess(5, 5);
+  arc.SetEvictable(5, true);
+  arc.RecordAccess(6, 6);
+  arc.SetEvictable(6, true);
+  arc.RecordAccess(7, 7);
+  arc.SetEvictable(7, true);
+
+  // Now 1 should STILL behave like B2 hit
+  arc.RecordAccess(1, 1);
+
+  // If bug exists → 1 behaves like cold miss
+  // If correct → it should NOT be immediately evicted
+
+  auto evicted = arc.Evict();
+  ASSERT_NE(evicted.value(), 1);
+}
+
+TEST(ArcReplacerTest, B2HitForcesT1EvictionAtBoundary) {
+  ArcReplacer arc(3);
+
+  // Fill T1
+  arc.RecordAccess(1, 1);
+  arc.SetEvictable(1, true);
+  arc.RecordAccess(2, 2);
+  arc.SetEvictable(2, true);
+  arc.RecordAccess(3, 3);
+  arc.SetEvictable(3, true);
+
+  // Promote 1 to T2
+  arc.RecordAccess(1, 1);
+
+  // Evict one page → pushes something into ghost
+  auto e1 = arc.Evict();
+  ASSERT_TRUE(e1.has_value());
+
+  // Now simulate B2 hit
+  arc.RecordAccess(1, 1);
+
+  // Critical eviction
+  auto e2 = arc.Evict();
+  ASSERT_TRUE(e2.has_value());
+
+  // EXPECTATION:
+  // Should evict from T1, not T2
+  // So frequently used page (1) must survive
+  ASSERT_NE(e2.value(), 1);
+}
+
+TEST(ArcReplacerTest, EvictionNeverFailsWhenEvictableExists) {
+  ArcReplacer arc(3);
+
+  arc.RecordAccess(1, 1);
+  arc.RecordAccess(2, 2);
+  arc.RecordAccess(3, 3);
+
+  arc.SetEvictable(1, true);
+  arc.SetEvictable(2, true);
+  arc.SetEvictable(3, true);
+
+  ASSERT_TRUE(arc.Evict().has_value());
+  ASSERT_TRUE(arc.Evict().has_value());
+  ASSERT_TRUE(arc.Evict().has_value());
+
+  // Now empty
+  ASSERT_FALSE(arc.Evict().has_value());
+}
+
+TEST(ArcReplacerTest, GhostHistoryInfluencesFuture) {
+  ArcReplacer arc(3);
+
+  // Phase 1: fill + evict everything
+  for (int i = 1; i <= 6; i++) {
+    arc.RecordAccess(i, i);
+    arc.SetEvictable(i, true);
+  }
+
+  for (int i = 1; i <= 3; i++) {
+    ASSERT_TRUE(arc.Evict().has_value());
+  }
+
+  // Phase 2: re-access old pages (ghost hits)
+  arc.RecordAccess(1, 1);
+  arc.RecordAccess(2, 2);
+
+  // Insert new pages
+  arc.RecordAccess(7, 7);
+  arc.SetEvictable(7, true);
+  arc.RecordAccess(8, 8);
+  arc.SetEvictable(8, true);
+
+  // Expect old pages to be favored (frequency bias)
+  auto e = arc.Evict();
+  ASSERT_TRUE(e.has_value());
+
+  ASSERT_NE(e.value(), 1);
+  ASSERT_NE(e.value(), 2);
+}
+
+TEST(ArcReplacerTest, PinnedPagesAreNeverEvicted) {
+  ArcReplacer arc(3);
+
+  arc.RecordAccess(1, 1);
+  arc.RecordAccess(2, 2);
+  arc.RecordAccess(3, 3);
+
+  arc.SetEvictable(1, false);
+  arc.SetEvictable(2, true);
+  arc.SetEvictable(3, true);
+
+  auto e1 = arc.Evict();
+  auto e2 = arc.Evict();
+
+  ASSERT_TRUE(e1.has_value());
+  ASSERT_TRUE(e2.has_value());
+
+  ASSERT_NE(e1.value(), 1);
+  ASSERT_NE(e2.value(), 1);
+}
+
+TEST(ArcReplacerTest, FrequencyPagesSurviveLonger) {
+  ArcReplacer arc(3);
+
+  arc.RecordAccess(1, 1);
+  arc.SetEvictable(1, true);
+  arc.RecordAccess(2, 2);
+  arc.SetEvictable(2, true);
+  arc.RecordAccess(3, 3);
+  arc.SetEvictable(3, true);
+
+  // Increase frequency
+  arc.RecordAccess(1, 1);
+  arc.RecordAccess(2, 2);
+
+  // Add pressure
+  arc.RecordAccess(4, 4);
+  arc.SetEvictable(4, true);
+  arc.RecordAccess(5, 5);
+  arc.SetEvictable(5, true);
+
+  auto e = arc.Evict();
+  ASSERT_TRUE(e.has_value());
+
+  // Least useful should go first
+  ASSERT_EQ(e.value(), 3);
+}
 
 }  // namespace bustub

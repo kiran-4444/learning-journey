@@ -85,6 +85,8 @@ class ArcReplacer {
   std::mutex latch_;
 
   // TODO(student): You can add member variables / functions as you like.
+
+  void PrintState();
 };
 
 }  // namespace bustub
