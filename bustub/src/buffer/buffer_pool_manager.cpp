@@ -11,6 +11,8 @@
 //===----------------------------------------------------------------------===//
 
 #include "buffer/buffer_pool_manager.h"
+#include <cstddef>
+#include <optional>
 #include "buffer/arc_replacer.h"
 #include "common/config.h"
 #include "common/macros.h"
@@ -24,7 +26,10 @@ namespace bustub {
  *
  * @param frame_id The frame ID / index of the frame we are creating a header for.
  */
-FrameHeader::FrameHeader(frame_id_t frame_id) : frame_id_(frame_id), data_(BUSTUB_PAGE_SIZE, 0) { Reset(); }
+FrameHeader::FrameHeader(frame_id_t frame_id, std::optional<page_id_t> page_id)
+    : frame_id_(frame_id), data_(BUSTUB_PAGE_SIZE, 0), page_id_(page_id) {
+  Reset();
+}
 
 /**
  * @brief Get a raw const pointer to the frame's data.
@@ -46,6 +51,7 @@ auto FrameHeader::GetDataMut() -> char * { return data_.data(); }
 void FrameHeader::Reset() {
   std::fill(data_.begin(), data_.end(), 0);
   pin_count_.store(0);
+  page_id_ = NULL;
   is_dirty_ = false;
 }
 
@@ -90,7 +96,8 @@ BufferPoolManager::BufferPoolManager(size_t num_frames, DiskManager *disk_manage
   // Initialize all of the frame headers, and fill the free frame list with all possible frame IDs (since all frames are
   // initially free).
   for (size_t i = 0; i < num_frames_; i++) {
-    frames_.push_back(std::make_shared<FrameHeader>(i));
+    std::optional<page_id_t> page_id = NULL;
+    frames_.push_back(std::make_shared<FrameHeader>(i, page_id));
     free_frames_.push_back(static_cast<int>(i));
   }
 }

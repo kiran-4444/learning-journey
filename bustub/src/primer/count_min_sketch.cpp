@@ -16,7 +16,7 @@
 #include <stdexcept>
 #include <string>
 
-std::mutex Mutex;
+std::mutex mutex;
 
 namespace bustub {
 
@@ -57,7 +57,9 @@ CountMinSketch<KeyType>::CountMinSketch(uint32_t width, uint32_t depth) : width_
 template <typename KeyType>
 CountMinSketch<KeyType>::~CountMinSketch() {
   if (matrix_ != nullptr) {
-    for (uint32_t i = 0; i < width_; ++i) delete[] matrix_[i];
+    for (uint32_t i = 0; i < width_; ++i) {
+      delete[] matrix_[i];
+    }
     delete[] matrix_;
   }
 }
@@ -116,7 +118,7 @@ void CountMinSketch<KeyType>::Insert(const KeyType &item) {
 
   for (uint32_t i = 0; i < depth_; ++i) {
     size_t hash_value = hash_functions_[i](item);
-    std::lock_guard<std::mutex> lock(Mutex);
+    std::lock_guard<std::mutex> lock(mutex);
     matrix_[hash_value][i]++;
   }
 }

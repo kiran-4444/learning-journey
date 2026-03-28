@@ -62,7 +62,7 @@ class FrameHeader {
   friend class WritePageGuard;
 
  public:
-  explicit FrameHeader(frame_id_t frame_id);
+  explicit FrameHeader(frame_id_t frame_id, std::optional<page_id_t> page_id);
 
  private:
   auto GetData() const -> const char *;
@@ -89,12 +89,9 @@ class FrameHeader {
   std::vector<char> data_;
 
   /**
-   * TODO(P1): You may add any fields or helper functions under here that you think are necessary.
-   *
-   * One potential optimization you could make is storing an optional page ID of the page that the `FrameHeader` is
-   * currently storing. This might allow you to skip searching for the corresponding (page ID, frame ID) pair somewhere
-   * else in the buffer pool manager...
+   * @brief Store the page_id of the current frame_id for quick access.
    */
+  std::optional<page_id_t> page_id_;
 };
 
 /**
